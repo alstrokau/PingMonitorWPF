@@ -1,0 +1,24 @@
+﻿<Window x:Class="PingMonitorWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PingMonitorWPF"
+        mc:Ignorable="d"
+        Title="PingMonitorWpf" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScottPlot:WpfPlot Grid.Row="0" x:Name="WpfPlot1" />
+        <DockPanel
+            LastChildFill="True"
+            Grid.Row="1">
+            <Button DockPanel.Dock="Left" Margin="10" Padding="3" Content="Pressor" Click="Button_Click"/>
+            <Label x:Name="LabelInfo" Content="Info" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right"/>
+        </DockPanel>
+    </Grid>
+</Window>
