@@ -3,6 +3,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Threading;
 using PingConMonitor.DataStructures;
+using System.Windows.Media;
 
 namespace PingMonitorWPF
 {    public partial class MainWindow : Window
@@ -25,7 +26,7 @@ namespace PingMonitorWPF
 
             double[] dataX = [0];
             double[] dataY = [0];
-            var z = WpfPlot1.Plot.Add.Scatter(dataX, dataY);
+            //var z = WpfPlot1.Plot.Add.Scatter(dataX, dataY);
             //z.ConnectStyle = ScottPlot.ConnectStyle.Straight
             //WpfPlot1.Refresh();
             var sig = WpfPlot1.Plot.Add.Signal(values);
@@ -48,7 +49,16 @@ namespace PingMonitorWPF
             WpfPlot1.Plot.Axes.AutoScale();
             WpfPlot1.Refresh();
 
-            LabelInfo.Content = DateTime.Now.ToLongTimeString() + "\t" + reply.RoundtripTime;
+            LabelInfo.Content = $"[{DateTime.Now.ToLongTimeString()}] {reply.RoundtripTime, 5}";
+            LabelInfo.Foreground = reply.RoundtripTime switch
+            {
+                0 => Brushes.Black,
+                <= 100 => Brushes.Green,
+                <= 250 => Brushes.DarkGreen,
+                <= 500 => Brushes.DarkOrange,
+                <= 1500 => Brushes.Red,
+                _ => Brushes.DarkRed
+            };
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

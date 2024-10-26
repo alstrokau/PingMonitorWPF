@@ -18,7 +18,7 @@
             LastChildFill="True"
             Grid.Row="1">
             <Button DockPanel.Dock="Left" Margin="10" Padding="3" Content="Pressor" Click="Button_Click"/>
-            <Label x:Name="LabelInfo" Content="Info" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right"/>
+            <Label x:Name="LabelInfo" FontFamily="Consolas" VerticalAlignment="Center" FontSize="14" HorizontalAlignment="Right"/>
         </DockPanel>
     </Grid>
 </Window>
