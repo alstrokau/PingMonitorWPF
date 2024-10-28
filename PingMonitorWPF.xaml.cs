@@ -1,5 +1,6 @@
 ﻿using System.Net.NetworkInformation;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using PingConMonitor.DataStructures;
@@ -14,21 +15,23 @@ namespace PingMonitorWPF
         readonly List<PingPoint> points = [];
         readonly LastTimes lastTimes = new();
         readonly int _sleepDuration = 500;
-        int timeoutsCount = 0;
         const string Address = "8.8.8.8";
-        const int max = 30;
-        long[] values = new long[max];
+        const int max = 600;
+        int chartTimeWindow = 10;
+        readonly long[] values = new long[max];
         int index = 0;
-        List<long> data = [];
-        List<long> dataX = [];
-        List<double> dataY = [];
-        long[] valuesX = new long[max];
-        double[] valuesY = new double[max];
-        Scatter scatter;
+        readonly List<long> data = [];
+        readonly List<long> dataX = [];
+        readonly List<double> dataY = [];
+        readonly long[] valuesX = new long[max];
+        readonly double[] valuesY = new double[max];
+        Scatter scatter = null!;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            CBFrameWidth.SelectedIndex = 1;
 
             InitScatterPlot();
             InitSignalPlot();
@@ -51,8 +54,8 @@ namespace PingMonitorWPF
             scatter = ScatterPlot.Plot.Add.Scatter(valuesX, valuesY);
             scatter.ConnectStyle = ScottPlot.ConnectStyle.StepVertical;
             scatter.LineWidth = 2;
-            scatter.FillY= true;
-            scatter.FillYColor = scatter.Color.WithAlpha(0.3);
+            scatter.FillY = true;
+            scatter.FillYColor = scatter.Color.WithAlpha(0.2);
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
@@ -88,12 +91,12 @@ namespace PingMonitorWPF
         {
             dataY.Add(reply.RoundtripTime == 0 ? double.NaN : (double)reply.RoundtripTime);
             dataX.Add(index);
-            dataX.TakeLast(max).ToArray().CopyTo(valuesX, 0);
-            dataY.TakeLast(max).ToArray().CopyTo(valuesY, 0);
+            dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
+            dataY.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesY, 0);
             scatter.MinRenderIndex = 0;
-            scatter.MaxRenderIndex = Math.Min(index, max);
+            scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
             ScatterPlot.Plot.Axes.AutoScale();
-            
+
             ScatterPlot.Refresh();
             ++index;
         }
@@ -108,6 +111,15 @@ namespace PingMonitorWPF
             {
                 timer.Start();
             }
+        }
+
+        private void CBFrameWidth_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            var selectedItem = (TextBlock)CBFrameWidth.SelectedItem;
+            string? value = selectedItem.Text.ToString();
+
+            if (!string.IsNullOrEmpty(value))
+                chartTimeWindow = Convert.ToInt32(value);
         }
     }
 }

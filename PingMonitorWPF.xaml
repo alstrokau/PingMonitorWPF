@@ -24,6 +24,15 @@
             LastChildFill="True"
             Grid.Row="1">
             <Button DockPanel.Dock="Left" Margin="10" Padding="3" Content="Pressor" Click="Button_Click"/>
+            <Label Content="Timeframe width (s) " VerticalAlignment="Center" Padding="20, 0,0,0"/>
+            <ComboBox x:Name="CBFrameWidth" SelectedIndex="1" VerticalAlignment="Center"
+                      SelectionChanged="CBFrameWidth_SelectionChanged">
+                <TextBlock>30</TextBlock>
+                <TextBlock>60</TextBlock>
+                <TextBlock>120</TextBlock>
+                <TextBlock>300</TextBlock>
+                <TextBlock>600</TextBlock>
+            </ComboBox>
             <Label x:Name="LabelInfo" FontFamily="Consolas" VerticalAlignment="Center" FontSize="14" HorizontalAlignment="Right"/>
         </DockPanel>
     </Grid>
