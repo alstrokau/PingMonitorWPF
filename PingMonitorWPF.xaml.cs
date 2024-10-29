@@ -26,6 +26,9 @@ namespace PingMonitorWPF
         readonly long[] valuesX = new long[max];
         readonly double[] valuesY = new double[max];
         Scatter scatter = null!;
+        HorizontalLine hrMax = null!;
+        HorizontalLine hrMin = null!;
+        HorizontalLine hrAverage = null!;
 
         public MainWindow()
         {
@@ -52,7 +55,7 @@ namespace PingMonitorWPF
         private void InitScatterPlot()
         {
             scatter = ScatterPlot.Plot.Add.Scatter(valuesX, valuesY);
-            scatter.ConnectStyle = ScottPlot.ConnectStyle.StepVertical;
+            scatter.ConnectStyle = ScottPlot.ConnectStyle.StepHorizontal;
             scatter.LineWidth = 2;
             scatter.FillY = true;
             scatter.FillYColor = scatter.Color.WithAlpha(0.2);
@@ -97,8 +100,31 @@ namespace PingMonitorWPF
             scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
             ScatterPlot.Plot.Axes.AutoScale();
 
+            ScatterPlot.Plot.Remove(hrMax);
+            ScatterPlot.Plot.Remove(hrMin);
+            ScatterPlot.Plot.Remove(hrAverage);
+
             ScatterPlot.Refresh();
+            UpdateLimitsLines();
             ++index;
+        }
+
+        private void UpdateLimitsLines()
+        {
+            hrMax = ScatterPlot.Plot.Add.HorizontalLine(dataY.Max());
+            hrMax.Color = ScottPlot.Colors.Red;
+            hrMax.LineWidth = 1;
+            hrMax.LinePattern = ScottPlot.LinePattern.Dotted;
+
+            hrMin = ScatterPlot.Plot.Add.HorizontalLine(dataY.Min());
+            hrMin.Color = ScottPlot.Colors.Green;
+            hrMin.LineWidth = 1;
+            hrMin.LinePattern = ScottPlot.LinePattern.Dotted;
+
+            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Average());
+            hrAverage.Color = ScottPlot.Colors.Blue;
+            hrAverage.LineWidth = 1;
+            hrAverage.LinePattern = ScottPlot.LinePattern.Dotted;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
