@@ -29,6 +29,8 @@ namespace PingMonitorWPF
         HorizontalLine hrMax = null!;
         HorizontalLine hrMin = null!;
         HorizontalLine hrAverage = null!;
+        HorizontalLine hrMedian = null!;
+        long medianFactor = 10;
 
         public MainWindow()
         {
@@ -100,17 +102,45 @@ namespace PingMonitorWPF
             scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
             ScatterPlot.Plot.Axes.AutoScale();
 
-            ScatterPlot.Plot.Remove(hrMax);
-            ScatterPlot.Plot.Remove(hrMin);
-            ScatterPlot.Plot.Remove(hrAverage);
-
             ScatterPlot.Refresh();
             UpdateLimitsLines();
             ++index;
+
+            if (index % medianFactor == 0)
+            {
+                UpdateMedianLimitLine();
+                System.Diagnostics.Debug.WriteLine($"Median calculation, index: {index}, factor: {medianFactor}");
+            }
+
+            if (index > medianFactor * 10)
+            {
+                medianFactor *= 10;
+            }
+        }
+
+        private void UpdateMedianLimitLine()
+        {
+            ScatterPlot.Plot.Remove(hrMedian);
+
+            var sorted = dataY.Where(x => !Double.IsNaN(x)).OrderBy(x => x).ToList();
+            int count = sorted.Count;
+            int mid = count / 2;
+            double median;
+
+            median = (count % 2 == 0)? median = (sorted[mid - 1] + sorted[mid]) / 2.0 : median = sorted[mid];
+
+            hrMedian = ScatterPlot.Plot.Add.HorizontalLine(median);
+            hrMedian.Color = ScottPlot.Colors.Blue;
+            hrMedian.LineWidth = 1;
+            hrMedian.LinePattern = ScottPlot.LinePattern.Dotted;
         }
 
         private void UpdateLimitsLines()
         {
+            ScatterPlot.Plot.Remove(hrMax);
+            ScatterPlot.Plot.Remove(hrMin);
+            ScatterPlot.Plot.Remove(hrAverage);
+
             hrMax = ScatterPlot.Plot.Add.HorizontalLine(dataY.Max());
             hrMax.Color = ScottPlot.Colors.Red;
             hrMax.LineWidth = 1;
@@ -121,10 +151,11 @@ namespace PingMonitorWPF
             hrMin.LineWidth = 1;
             hrMin.LinePattern = ScottPlot.LinePattern.Dotted;
 
-            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x=>!Double.IsNaN(x)).Average());
-            hrAverage.Color = ScottPlot.Colors.Blue;
+            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x => !Double.IsNaN(x)).Average());
+            hrAverage.Color = ScottPlot.Colors.DarkOrange;
             hrAverage.LineWidth = 1;
             hrAverage.LinePattern = ScottPlot.LinePattern.Dotted;
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
