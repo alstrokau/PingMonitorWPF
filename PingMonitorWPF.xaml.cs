@@ -116,12 +116,12 @@ namespace PingMonitorWPF
             hrMax.LineWidth = 1;
             hrMax.LinePattern = ScottPlot.LinePattern.Dotted;
 
-            hrMin = ScatterPlot.Plot.Add.HorizontalLine(dataY.Min());
+            hrMin = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x => !Double.IsNaN(x)).Min());
             hrMin.Color = ScottPlot.Colors.Green;
             hrMin.LineWidth = 1;
             hrMin.LinePattern = ScottPlot.LinePattern.Dotted;
 
-            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Average());
+            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x=>!Double.IsNaN(x)).Average());
             hrAverage.Color = ScottPlot.Colors.Blue;
             hrAverage.LineWidth = 1;
             hrAverage.LinePattern = ScottPlot.LinePattern.Dotted;
