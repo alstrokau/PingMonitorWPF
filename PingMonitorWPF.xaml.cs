@@ -36,8 +36,6 @@ namespace PingMonitorWPF
         {
             InitializeComponent();
 
-            CBFrameWidth.SelectedIndex = 1;
-
             InitScatterPlot();
             InitSignalPlot();
 
@@ -186,6 +184,8 @@ namespace PingMonitorWPF
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            Properties.Settings.Default.TimeframeWidhtIndex = CBFrameWidth.SelectedIndex;
+
             Properties.Settings.Default.WinTop = this.Top;
             Properties.Settings.Default.WinLeft = this.Left;
             Properties.Settings.Default.WinWidth = this.Width;
@@ -196,6 +196,8 @@ namespace PingMonitorWPF
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            CBFrameWidth.SelectedIndex = Properties.Settings.Default.TimeframeWidhtIndex;
+
             if (Properties.Settings.Default.WinWidth != 0)
             {
                 this.Top = Properties.Settings.Default.WinTop;
