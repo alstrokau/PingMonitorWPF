@@ -30,6 +30,7 @@ namespace PingMonitorWPF
         HorizontalLine hrMin = null!;
         HorizontalLine hrAverage = null!;
         HorizontalLine hrMedian = null!;
+        VerticalLine vrTimeout = null!;
         long medianFactor = 10;
 
         public MainWindow()
@@ -97,6 +98,14 @@ namespace PingMonitorWPF
 
         private void ProcessScatterPlot(PingReply reply)
         {
+            if(reply.RoundtripTime == 0)
+            {
+                vrTimeout = ScatterPlot.Plot.Add.VerticalLine(index);
+                vrTimeout.Color = ScottPlot.Colors.Red;
+                vrTimeout.LineWidth = 3;
+                vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
+            }
+
             dataY.Add(reply.RoundtripTime == 0 ? double.NaN : (double)reply.RoundtripTime);
             dataX.Add(index);
             dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
@@ -212,5 +221,9 @@ namespace PingMonitorWPF
             }
         }
 
+        private void ButtonAct_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

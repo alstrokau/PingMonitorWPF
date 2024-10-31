@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PingMonitorWPF"
         mc:Ignorable="d"
-        Title="PingMonitorWpf v0.3" Height="450" Width="800">
+        Title="PingMonitorWpf v0.4" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -23,6 +23,7 @@
         <DockPanel
             LastChildFill="True"
             Grid.Row="1">
+            <Button Content="Action" Visibility="Visible" Click="ButtonAct_Click"  DockPanel.Dock="Left"/>
             <Button DockPanel.Dock="Left" Margin="10" Padding="3" Content="Pressor" Click="Button_Click"/>
             <Label Content="Timeframe width " VerticalAlignment="Center" Padding="20, 0,0,0"/>
             <ComboBox x:Name="CBFrameWidth" SelectedIndex="1" VerticalAlignment="Center"
