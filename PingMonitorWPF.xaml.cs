@@ -43,7 +43,12 @@ namespace PingMonitorWPF
 
             timer.Interval = TimeSpan.FromMilliseconds(_sleepDuration);
             timer.Tick += Timer_Tick;
+
+            this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
         }
+
+
 
         private void InitSignalPlot()
         {
@@ -127,7 +132,7 @@ namespace PingMonitorWPF
             int mid = count / 2;
             double median;
 
-            median = (count % 2 == 0)? median = (sorted[mid - 1] + sorted[mid]) / 2.0 : median = sorted[mid];
+            median = (count % 2 == 0) ? median = (sorted[mid - 1] + sorted[mid]) / 2.0 : median = sorted[mid];
 
             hrMedian = ScatterPlot.Plot.Add.HorizontalLine(median);
             hrMedian.Color = ScottPlot.Colors.Blue;
@@ -178,5 +183,32 @@ namespace PingMonitorWPF
             if (!string.IsNullOrEmpty(value))
                 chartTimeWindow = Convert.ToInt32(value);
         }
+
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Properties.Settings.Default.WinTop = this.Top;
+            Properties.Settings.Default.WinLeft = this.Left;
+            Properties.Settings.Default.WinWidth = this.Width;
+            Properties.Settings.Default.WinHeight = this.Height;
+            Properties.Settings.Default.WinState = this.WindowState.ToString();
+            Properties.Settings.Default.Save();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (Properties.Settings.Default.WinWidth != 0)
+            {
+                this.Top = Properties.Settings.Default.WinTop;
+                this.Left = Properties.Settings.Default.WinLeft;
+                this.Width = Properties.Settings.Default.WinWidth;
+                this.Height = Properties.Settings.Default.WinHeight;
+
+                if (Enum.TryParse(Properties.Settings.Default.WinState, out WindowState state))
+                {
+                    this.WindowState = state;
+                }
+            }
+        }
+
     }
 }
