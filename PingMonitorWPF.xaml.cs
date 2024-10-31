@@ -30,7 +30,7 @@ namespace PingMonitorWPF
         HorizontalLine hrMin = null!;
         HorizontalLine hrAverage = null!;
         HorizontalLine hrMedian = null!;
-        VerticalLine vrTimeout = null!;
+        List<VerticalLine> vrTimeouts = [];
         long medianFactor = 10;
 
         public MainWindow()
@@ -98,13 +98,7 @@ namespace PingMonitorWPF
 
         private void ProcessScatterPlot(PingReply reply)
         {
-            if(reply.RoundtripTime == 0)
-            {
-                vrTimeout = ScatterPlot.Plot.Add.VerticalLine(index);
-                vrTimeout.Color = ScottPlot.Colors.Red;
-                vrTimeout.LineWidth = 3;
-                vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
-            }
+            AddTimeoutLine(reply);
 
             dataY.Add(reply.RoundtripTime == 0 ? double.NaN : (double)reply.RoundtripTime);
             dataX.Add(index);
@@ -127,6 +121,23 @@ namespace PingMonitorWPF
             if (index > medianFactor * 10)
             {
                 medianFactor *= 10;
+            }
+
+            RemoveOutdatedTimeoutLines(index);
+        }
+
+        private void RemoveOutdatedTimeoutLines(int index)
+        {
+            vrTimeouts.AsEnumerable().Where(vl => vl.Position < index - chartTimeWindow).ToList()
+                .ForEach(ScatterPlot.Plot.Remove);
+            vrTimeouts = vrTimeouts.AsEnumerable().Where(vl => vl.Position >= index - chartTimeWindow).ToList();
+        }
+
+        private void AddTimeoutLine(PingReply reply)
+        {
+            if (reply.RoundtripTime == 0)
+            {
+                AddTimeoutLine(index);
             }
         }
 
@@ -188,7 +199,39 @@ namespace PingMonitorWPF
             string? value = selectedItem.Text.ToString();
 
             if (!string.IsNullOrEmpty(value))
-                chartTimeWindow = Convert.ToInt32(value);
+            {
+                var newValue = Convert.ToInt32(value);
+                if (newValue > chartTimeWindow)
+                {
+                    AddMissingTimeoutLines(index - newValue);
+                }
+
+                chartTimeWindow = newValue;
+            }
+        }
+
+        private void AddMissingTimeoutLines(int minIndex)
+        {
+            if (dataY.Count == 0)
+                return;
+
+            for (int i = Math.Max(0, minIndex); i < index; i++)
+            {
+                if (double.IsNaN(dataY[i]) && !vrTimeouts.Any(vr => vr.Position == i + 1))
+                {
+                    AddTimeoutLine(i + 1);
+                }
+            }
+        }
+
+        private void AddTimeoutLine(int position)
+        {
+            var vrTimeout = ScatterPlot.Plot.Add.VerticalLine(position);
+            vrTimeout.Color = ScottPlot.Colors.Red;
+            vrTimeout.LineWidth = 3;
+            vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
+
+            vrTimeouts.Add(vrTimeout);
         }
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -223,7 +266,15 @@ namespace PingMonitorWPF
 
         private void ButtonAct_Click(object sender, RoutedEventArgs e)
         {
+            dataY.Add(double.NaN);
+            dataX.Add(index++);
 
+            var vrTimeout = ScatterPlot.Plot.Add.VerticalLine(index);
+            vrTimeout.Color = ScottPlot.Colors.Red;
+            vrTimeout.LineWidth = 3;
+            vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
+
+            vrTimeouts.Add(vrTimeout);
         }
     }
 }

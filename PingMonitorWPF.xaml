@@ -23,7 +23,7 @@
         <DockPanel
             LastChildFill="True"
             Grid.Row="1">
-            <Button Content="Action" Visibility="Visible" Click="ButtonAct_Click"  DockPanel.Dock="Left"/>
+            <Button Content="Action" Visibility="Collapsed" Click="ButtonAct_Click" DockPanel.Dock="Left"/>
             <Button DockPanel.Dock="Left" Margin="10" Padding="3" Content="Pressor" Click="Button_Click"/>
             <Label Content="Timeframe width " VerticalAlignment="Center" Padding="20, 0,0,0"/>
             <ComboBox x:Name="CBFrameWidth" SelectedIndex="1" VerticalAlignment="Center"
