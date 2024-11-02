@@ -14,10 +14,8 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <ScottPlot:WpfPlot Grid.Column="1" x:Name="SignalPlot"/>
         <ScottPlot:WpfPlot Grid.Column="0" x:Name="ScatterPlot" />
 
         <DockPanel
