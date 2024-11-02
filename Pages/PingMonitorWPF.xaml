@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PingMonitorWPF"
         mc:Ignorable="d"
-        Title="PingMonitorWpf v0.4" Height="450" Width="800">
+        Title="PingMonitorWpf v0.5" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -34,7 +34,8 @@
                 <TextBlock>300</TextBlock>
                 <TextBlock>600</TextBlock>
             </ComboBox>
-            <Label x:Name="LabelInfo" FontFamily="Consolas" VerticalAlignment="Center" FontSize="14" HorizontalAlignment="Right"/>
+            <Label x:Name="LabelInfo" Content="---" FontFamily="JetBrains Mono"
+                   VerticalAlignment="Center" FontSize="10" HorizontalAlignment="Right"/>
         </DockPanel>
     </Grid>
 </Window>

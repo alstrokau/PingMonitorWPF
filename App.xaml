@@ -2,8 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PingMonitorWPF"
-             StartupUri="PingMonitorWPF.xaml">
+             StartupUri="Pages/PingMonitorWPF.xaml">
     <Application.Resources>
-         
+        <FontFamily x:Key="JetBrains Mono">pack://application:,,,/Fonts/#JetBrains Mono</FontFamily>
     </Application.Resources>
 </Application>
