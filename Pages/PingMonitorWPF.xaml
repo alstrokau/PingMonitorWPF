@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PingMonitorWPF"
         mc:Ignorable="d"
-        Title="PingMonitorWpf v0.6" Height="450" Width="800">
+        Title="PingMonitorWpf v0.7" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
@@ -31,6 +31,16 @@
                 <TextBlock>120</TextBlock>
                 <TextBlock>300</TextBlock>
                 <TextBlock>600</TextBlock>
+            </ComboBox>
+
+            <Label Content="Delay time (ms) " VerticalAlignment="Center" Padding="20, 0,0,0"/>
+            <ComboBox x:Name="CBDelayTime" SelectedIndex="1" VerticalAlignment="Center"
+                      SelectionChanged="CBDelayTime_SelectionChanged">
+                <TextBlock>0</TextBlock>
+                <TextBlock>100</TextBlock>
+                <TextBlock>250</TextBlock>
+                <TextBlock>500</TextBlock>
+                <TextBlock>1000</TextBlock>
             </ComboBox>
             <Label x:Name="LabelInfo" Content="---" FontFamily="JetBrains Mono"
                    VerticalAlignment="Center" FontSize="10" HorizontalAlignment="Right"/>

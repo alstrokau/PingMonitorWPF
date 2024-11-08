@@ -94,5 +94,17 @@ namespace PingMonitorWPF.Properties {
                 this["TimeframeWidhtIndex"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int DelayTime {
+            get {
+                return ((int)(this["DelayTime"]));
+            }
+            set {
+                this["DelayTime"] = value;
+            }
+        }
     }
 }

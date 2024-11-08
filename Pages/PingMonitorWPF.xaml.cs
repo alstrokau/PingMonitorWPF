@@ -11,15 +11,15 @@ namespace PingMonitorWPF
     {
         readonly DispatcherTimer timer = new();
         readonly Ping ping = new();
-        readonly int _sleepDuration = 500;
+        int _delayTime = 500;
         const string Address = "8.8.8.8";
-        const int max = 600;
+        const int maxTimeframeWidth = 600;
         int chartTimeWindow = 10;
         int index = 0;
         readonly List<long> dataX = [];
         readonly List<double> dataY = [];
-        readonly long[] valuesX = new long[max];
-        readonly double[] valuesY = new double[max];
+        readonly long[] valuesX = new long[maxTimeframeWidth];
+        readonly double[] valuesY = new double[maxTimeframeWidth];
         Scatter scatter = null!;
         HorizontalLine hrMax = null!;
         HorizontalLine hrMin = null!;
@@ -34,7 +34,7 @@ namespace PingMonitorWPF
 
             InitScatterPlot();
 
-            timer.Interval = TimeSpan.FromMilliseconds(_sleepDuration);
+            timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
             timer.Tick += Timer_Tick;
 
             this.Loaded += MainWindow_Loaded;
@@ -99,7 +99,7 @@ namespace PingMonitorWPF
             ScatterPlot.Refresh();
             UpdateLimitsLines();
             ScatterPlot.Plot.Axes.SetLimitsY(
-                Math.Min(hrMin.Position *.95, 0.95),
+                Math.Min(hrMin.Position * .95, 0.95),
                 Math.Max(hrMax.Position * 1.05, 2.05));
 
             ++index;
@@ -229,6 +229,7 @@ namespace PingMonitorWPF
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             Properties.Settings.Default.TimeframeWidhtIndex = CBFrameWidth.SelectedIndex;
+            Properties.Settings.Default.DelayTime = CBDelayTime.SelectedIndex;
 
             Properties.Settings.Default.WinTop = this.Top;
             Properties.Settings.Default.WinLeft = this.Left;
@@ -241,6 +242,7 @@ namespace PingMonitorWPF
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             CBFrameWidth.SelectedIndex = Properties.Settings.Default.TimeframeWidhtIndex;
+            CBDelayTime.SelectedIndex = Properties.Settings.Default.DelayTime;
 
             if (Properties.Settings.Default.WinWidth != 0)
             {
@@ -267,6 +269,19 @@ namespace PingMonitorWPF
             vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
 
             vrTimeouts.Add(vrTimeout);
+        }
+
+        private void CBDelayTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedItem = (TextBlock)CBDelayTime.SelectedItem;
+            string? value = selectedItem.Text.ToString();
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                _delayTime = Convert.ToInt32(value);
+
+                timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
+            }
         }
     }
 }
