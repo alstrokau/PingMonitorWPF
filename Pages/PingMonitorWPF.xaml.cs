@@ -48,6 +48,22 @@ namespace PingMonitorWPF
             scatter.LineWidth = 2;
             scatter.FillY = true;
             scatter.FillYColor = scatter.Color.WithAlpha(0.2);
+            SetupLogScale();
+        }
+
+        private void SetupLogScale()
+        {
+            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenerator = new() { Divisions = 10 };
+            ScottPlot.TickGenerators.NumericAutomatic tickGen = new()
+            {
+                MinorTickGenerator = minorTickGenerator,
+                IntegerTicksOnly = true,
+                LabelFormatter = (double y) => $"{Math.Pow(10, y):N0}"
+            };
+            ScatterPlot.Plot.Axes.Left.TickGenerator = tickGen;
+            ScatterPlot.Plot.Grid.MajorLineColor = ScottPlot.Colors.Black.WithOpacity(0.15);
+            ScatterPlot.Plot.Grid.MinorLineColor = ScottPlot.Colors.Black.WithOpacity(0.05);
+            ScatterPlot.Plot.Grid.MinorLineWidth = 1;
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
@@ -72,7 +88,7 @@ namespace PingMonitorWPF
         {
             AddTimeoutLine(reply);
 
-            dataY.Add(reply.RoundtripTime == 0 ? double.NaN : (double)reply.RoundtripTime);
+            dataY.Add(reply.RoundtripTime == 0 ? double.NaN : Math.Log10(reply.RoundtripTime));
             dataX.Add(index);
             dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
             dataY.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesY, 0);
@@ -82,6 +98,10 @@ namespace PingMonitorWPF
 
             ScatterPlot.Refresh();
             UpdateLimitsLines();
+            ScatterPlot.Plot.Axes.SetLimitsY(
+                Math.Min(hrMin.Position *.95, 0.95),
+                Math.Max(hrMax.Position * 1.05, 2.05));
+
             ++index;
 
             if (index % medianFactor == 0)
