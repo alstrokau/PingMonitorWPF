@@ -27,6 +27,7 @@ namespace PingMonitorWPF
         HorizontalLine hrMedian = null!;
         List<VerticalLine> vrTimeouts = [];
         long medianFactor = 10;
+        List<Marker> markers = [];
 
         public MainWindow()
         {
@@ -46,6 +47,7 @@ namespace PingMonitorWPF
             scatter = ScatterPlot.Plot.Add.Scatter(valuesX, valuesY);
             scatter.ConnectStyle = ScottPlot.ConnectStyle.StepHorizontal;
             scatter.LineWidth = 2;
+            scatter.MarkerShape = ScottPlot.MarkerShape.None;
             scatter.FillY = true;
             scatter.FillYColor = scatter.Color.WithAlpha(0.2);
             SetupLogScale();
@@ -70,10 +72,17 @@ namespace PingMonitorWPF
         {
             PingReply reply = ping.Send(Address);
 
+            SolidColorBrush color = GetBrushByRoundtripTime(reply.RoundtripTime);
+            LabelInfo.Foreground = color;
             ProcessScatterPlot(reply);
 
             LabelInfo.Content = $"[{DateTime.Now.ToLongTimeString()}] {reply.RoundtripTime,5}";
-            LabelInfo.Foreground = reply.RoundtripTime switch
+
+        }
+
+        private static SolidColorBrush GetBrushByRoundtripTime(long RoundtripTime)
+        {
+            return RoundtripTime switch
             {
                 0 => Brushes.Black,
                 <= 100 => Brushes.Green,
@@ -82,6 +91,20 @@ namespace PingMonitorWPF
                 <= 1500 => Brushes.Red,
                 _ => Brushes.DarkRed
             };
+        }
+        private static ScottPlot.Color GetColorByRoundtripTime(long RoundtripTime)
+        {
+            return
+                ScottPlot.Color.FromColor(
+                RoundtripTime switch
+                {
+                    0 => System.Drawing.Color.Black,
+                    <= 100 => System.Drawing.Color.Green,
+                    <= 250 => System.Drawing.Color.DarkGreen,
+                    <= 500 => System.Drawing.Color.DarkOrange,
+                    <= 1500 => System.Drawing.Color.Red,
+                    _ => System.Drawing.Color.DarkRed
+                });
         }
 
         private void ProcessScatterPlot(PingReply reply)
@@ -92,6 +115,14 @@ namespace PingMonitorWPF
             dataX.Add(index);
             dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
             dataY.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesY, 0);
+
+            markers.Add(ScatterPlot.Plot.Add.Marker(
+                index, dataY.Last(),
+                color: GetColorByRoundtripTime(reply.RoundtripTime),
+                shape: ScottPlot.MarkerShape.FilledCircle,
+                size: 5
+                ));
+
             scatter.MinRenderIndex = 0;
             scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
             ScatterPlot.Plot.Axes.AutoScale();
@@ -107,7 +138,6 @@ namespace PingMonitorWPF
             if (index % medianFactor == 0)
             {
                 UpdateMedianLimitLine();
-                System.Diagnostics.Debug.WriteLine($"Median calculation, index: {index}, factor: {medianFactor}");
             }
 
             if (index > medianFactor * 10)
@@ -123,6 +153,8 @@ namespace PingMonitorWPF
             vrTimeouts.AsEnumerable().Where(vl => vl.Position < index - chartTimeWindow).ToList()
                 .ForEach(ScatterPlot.Plot.Remove);
             vrTimeouts = vrTimeouts.AsEnumerable().Where(vl => vl.Position >= index - chartTimeWindow).ToList();
+
+            markers.AsEnumerable().Where(m => m.Position.X < index - chartTimeWindow).ToList().ForEach(ScatterPlot.Plot.Remove);
         }
 
         private void AddTimeoutLine(PingReply reply)
