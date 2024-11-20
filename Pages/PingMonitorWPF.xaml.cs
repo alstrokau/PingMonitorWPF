@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ScottPlot.Plottables;
+using static System.Runtime.InteropServices.Marshalling.IIUnknownCacheStrategy;
 
 namespace PingMonitorWPF
 {
@@ -27,7 +28,7 @@ namespace PingMonitorWPF
         HorizontalLine hrMedian = null!;
         List<VerticalLine> vrTimeouts = [];
         long medianFactor = 10;
-        List<Marker> markers = [];
+        readonly List<Marker> markers = [];
 
         public MainWindow()
         {
@@ -70,7 +71,18 @@ namespace PingMonitorWPF
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            PingReply reply = ping.Send(Address);
+            PingReply reply;
+
+            try
+            {
+                reply = ping.Send(Address);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Got exception: " + ex.Message);
+                Thread.Sleep(1000);
+                return;
+            }
 
             SolidColorBrush color = GetBrushByRoundtripTime(reply.RoundtripTime);
             LabelInfo.Foreground = color;
@@ -89,7 +101,8 @@ namespace PingMonitorWPF
                 <= 250 => Brushes.DarkGreen,
                 <= 500 => Brushes.DarkOrange,
                 <= 1500 => Brushes.Red,
-                _ => Brushes.DarkRed
+                <= 2000 => Brushes.DarkRed,
+                _ => Brushes.Black
             };
         }
         private static ScottPlot.Color GetColorByRoundtripTime(long RoundtripTime)
@@ -103,7 +116,8 @@ namespace PingMonitorWPF
                     <= 250 => System.Drawing.Color.DarkGreen,
                     <= 500 => System.Drawing.Color.DarkOrange,
                     <= 1500 => System.Drawing.Color.Red,
-                    _ => System.Drawing.Color.DarkRed
+                    <= 2000 => System.Drawing.Color.DarkRed,
+                    _ => System.Drawing.Color.Black
                 });
         }
 
