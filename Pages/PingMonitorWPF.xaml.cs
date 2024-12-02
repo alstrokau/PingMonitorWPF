@@ -4,31 +4,30 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ScottPlot.Plottables;
-using static System.Runtime.InteropServices.Marshalling.IIUnknownCacheStrategy;
 
-namespace PingMonitorWPF
+namespace PingMonitorWPF.Pages
 {
     public partial class MainWindow : Window
     {
-        readonly DispatcherTimer timer = new();
-        readonly Ping ping = new();
-        int _delayTime = 500;
-        const string Address = "8.8.8.8";
-        const int maxTimeframeWidth = 600;
-        int chartTimeWindow = 10;
-        int index = 0;
-        readonly List<long> dataX = [];
-        readonly List<double> dataY = [];
-        readonly long[] valuesX = new long[maxTimeframeWidth];
-        readonly double[] valuesY = new double[maxTimeframeWidth];
-        Scatter scatter = null!;
-        HorizontalLine hrMax = null!;
-        HorizontalLine hrMin = null!;
-        HorizontalLine hrAverage = null!;
-        HorizontalLine hrMedian = null!;
-        List<VerticalLine> vrTimeouts = [];
-        long medianFactor = 10;
-        readonly List<Marker> markers = [];
+        private readonly DispatcherTimer _timer = new();
+        private readonly Ping _ping = new();
+        private int _delayTime = 500;
+        private const string Address = "8.8.8.8";
+        private const int MaxTimeframeWidth = 600;
+        private int _chartTimeWindow = 10;
+        private int _index = 0;
+        private readonly List<long> _dataX = [];
+        private readonly List<double> _dataY = [];
+        private readonly long[] _valuesX = new long[MaxTimeframeWidth];
+        private readonly double[] _valuesY = new double[MaxTimeframeWidth];
+        private Scatter _scatter = null!;
+        private HorizontalLine _hrMax = null!;
+        private HorizontalLine _hrMin = null!;
+        private HorizontalLine _hrAverage = null!;
+        private HorizontalLine _hrMedian = null!;
+        private List<VerticalLine> _vrTimeouts = [];
+        private long _medianFactor = 10;
+        private readonly List<Marker> _markers = [];
 
         public MainWindow()
         {
@@ -36,21 +35,21 @@ namespace PingMonitorWPF
 
             InitScatterPlot();
 
-            timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
-            timer.Tick += Timer_Tick;
+            _timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
+            _timer.Tick += Timer_Tick;
 
-            this.Loaded += MainWindow_Loaded;
-            this.Closing += MainWindow_Closing;
+            Loaded += MainWindow_Loaded;
+            Closing += MainWindow_Closing;
         }
 
         private void InitScatterPlot()
         {
-            scatter = ScatterPlot.Plot.Add.Scatter(valuesX, valuesY);
-            scatter.ConnectStyle = ScottPlot.ConnectStyle.StepHorizontal;
-            scatter.LineWidth = 2;
-            scatter.MarkerShape = ScottPlot.MarkerShape.None;
-            scatter.FillY = true;
-            scatter.FillYColor = scatter.Color.WithAlpha(0.2);
+            _scatter = ScatterPlot.Plot.Add.Scatter(_valuesX, _valuesY);
+            _scatter.ConnectStyle = ScottPlot.ConnectStyle.StepHorizontal;
+            _scatter.LineWidth = 2;
+            _scatter.MarkerShape = ScottPlot.MarkerShape.None;
+            _scatter.FillY = true;
+            _scatter.FillYColor = _scatter.Color.WithAlpha(0.2);
             SetupLogScale();
         }
 
@@ -61,7 +60,7 @@ namespace PingMonitorWPF
             {
                 MinorTickGenerator = minorTickGenerator,
                 IntegerTicksOnly = true,
-                LabelFormatter = (double y) => $"{Math.Pow(10, y):N0}"
+                LabelFormatter = y => $"{Math.Pow(10, y):N0}"
             };
             ScatterPlot.Plot.Axes.Left.TickGenerator = tickGen;
             ScatterPlot.Plot.Grid.MajorLineColor = ScottPlot.Colors.Black.WithOpacity(0.15);
@@ -75,7 +74,7 @@ namespace PingMonitorWPF
 
             try
             {
-                reply = ping.Send(Address);
+                reply = _ping.Send(Address);
             }
             catch (Exception ex)
             {
@@ -92,9 +91,9 @@ namespace PingMonitorWPF
 
         }
 
-        private static SolidColorBrush GetBrushByRoundtripTime(long RoundtripTime)
+        private static SolidColorBrush GetBrushByRoundtripTime(long roundtripTime)
         {
-            return RoundtripTime switch
+            return roundtripTime switch
             {
                 0 => Brushes.Black,
                 <= 100 => Brushes.Green,
@@ -105,11 +104,11 @@ namespace PingMonitorWPF
                 _ => Brushes.Black
             };
         }
-        private static ScottPlot.Color GetColorByRoundtripTime(long RoundtripTime)
+        private static ScottPlot.Color GetColorByRoundtripTime(long roundtripTime)
         {
             return
                 ScottPlot.Color.FromColor(
-                RoundtripTime switch
+                roundtripTime switch
                 {
                     0 => System.Drawing.Color.Black,
                     <= 100 => System.Drawing.Color.Green,
@@ -125,137 +124,135 @@ namespace PingMonitorWPF
         {
             AddTimeoutLine(reply);
 
-            dataY.Add(reply.RoundtripTime == 0 ? double.NaN : Math.Log10(reply.RoundtripTime));
-            dataX.Add(index);
-            dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
-            dataY.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesY, 0);
+            _dataY.Add(reply.RoundtripTime == 0 ? double.NaN : Math.Log10(reply.RoundtripTime));
+            _dataX.Add(_index);
+            _dataX.TakeLast(_chartTimeWindow).ToArray().CopyTo(_valuesX, 0);
+            _dataY.TakeLast(_chartTimeWindow).ToArray().CopyTo(_valuesY, 0);
 
-            markers.Add(ScatterPlot.Plot.Add.Marker(
-                index, dataY.Last(),
+            _markers.Add(ScatterPlot.Plot.Add.Marker(
+                _index, _dataY.Last(),
                 color: GetColorByRoundtripTime(reply.RoundtripTime),
                 shape: ScottPlot.MarkerShape.FilledCircle,
                 size: 5
                 ));
 
-            scatter.MinRenderIndex = 0;
-            scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
+            _scatter.MinRenderIndex = 0;
+            _scatter.MaxRenderIndex = Math.Min(_index, _chartTimeWindow - 1);
             ScatterPlot.Plot.Axes.AutoScale();
 
             ScatterPlot.Refresh();
             UpdateLimitsLines();
             ScatterPlot.Plot.Axes.SetLimitsY(
-                Math.Min(hrMin.Position * .95, 0.95),
-                Math.Max(hrMax.Position * 1.05, 2.05));
+                Math.Min(_hrMin.Position * .95, 0.95),
+                Math.Max(_hrMax.Position * 1.05, 2.05));
 
-            ++index;
+            ++_index;
 
-            if (index % medianFactor == 0)
+            if (_index % _medianFactor == 0)
             {
                 UpdateMedianLimitLine();
             }
 
-            if (index > medianFactor * 10)
+            if (_index > _medianFactor * 10)
             {
-                medianFactor *= 10;
+                _medianFactor *= 10;
             }
 
-            RemoveOutdatedTimeoutLines(index);
+            RemoveOutdatedTimeoutLines(_index);
         }
 
         private void RemoveOutdatedTimeoutLines(int index)
         {
-            vrTimeouts.AsEnumerable().Where(vl => vl.Position < index - chartTimeWindow).ToList()
+            _vrTimeouts.AsEnumerable().Where(vl => vl.Position < index - _chartTimeWindow).ToList()
                 .ForEach(ScatterPlot.Plot.Remove);
-            vrTimeouts = vrTimeouts.AsEnumerable().Where(vl => vl.Position >= index - chartTimeWindow).ToList();
+            _vrTimeouts = _vrTimeouts.AsEnumerable().Where(vl => vl.Position >= index - _chartTimeWindow).ToList();
 
-            markers.AsEnumerable().Where(m => m.Position.X < index - chartTimeWindow).ToList().ForEach(ScatterPlot.Plot.Remove);
+            _markers.AsEnumerable().Where(m => m.Position.X < index - _chartTimeWindow).ToList().ForEach(ScatterPlot.Plot.Remove);
         }
 
         private void AddTimeoutLine(PingReply reply)
         {
             if (reply.RoundtripTime == 0)
             {
-                AddTimeoutLine(index);
+                AddTimeoutLine(_index);
             }
         }
 
         private void UpdateMedianLimitLine()
         {
-            ScatterPlot.Plot.Remove(hrMedian);
+            ScatterPlot.Plot.Remove(_hrMedian);
 
-            var sorted = dataY.Where(x => !Double.IsNaN(x)).OrderBy(x => x).ToList();
+            var sorted = _dataY.Where(x => !Double.IsNaN(x)).OrderBy(x => x).ToList();
             int count = sorted.Count;
             int mid = count / 2;
             double median;
 
             median = (count % 2 == 0) ? median = (sorted[mid - 1] + sorted[mid]) / 2.0 : median = sorted[mid];
 
-            hrMedian = ScatterPlot.Plot.Add.HorizontalLine(median);
-            hrMedian.Color = ScottPlot.Colors.Blue;
-            hrMedian.LineWidth = 1;
-            hrMedian.LinePattern = ScottPlot.LinePattern.Dotted;
+            _hrMedian = ScatterPlot.Plot.Add.HorizontalLine(median);
+            _hrMedian.Color = ScottPlot.Colors.Blue;
+            _hrMedian.LineWidth = 1;
+            _hrMedian.LinePattern = ScottPlot.LinePattern.Dotted;
         }
 
         private void UpdateLimitsLines()
         {
-            ScatterPlot.Plot.Remove(hrMax);
-            ScatterPlot.Plot.Remove(hrMin);
-            ScatterPlot.Plot.Remove(hrAverage);
+            ScatterPlot.Plot.Remove(_hrMax);
+            ScatterPlot.Plot.Remove(_hrMin);
+            ScatterPlot.Plot.Remove(_hrAverage);
 
-            hrMax = ScatterPlot.Plot.Add.HorizontalLine(dataY.Max());
-            hrMax.Color = ScottPlot.Colors.Red;
-            hrMax.LineWidth = 1;
-            hrMax.LinePattern = ScottPlot.LinePattern.Dotted;
+            _hrMax = ScatterPlot.Plot.Add.HorizontalLine(_dataY.Max());
+            _hrMax.Color = ScottPlot.Colors.Red;
+            _hrMax.LineWidth = 1;
+            _hrMax.LinePattern = ScottPlot.LinePattern.Dotted;
 
-            hrMin = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x => !Double.IsNaN(x)).Min());
-            hrMin.Color = ScottPlot.Colors.Green;
-            hrMin.LineWidth = 1;
-            hrMin.LinePattern = ScottPlot.LinePattern.Dotted;
+            _hrMin = ScatterPlot.Plot.Add.HorizontalLine(_dataY.Where(x => !double.IsNaN(x)).Min());
+            _hrMin.Color = ScottPlot.Colors.Green;
+            _hrMin.LineWidth = 1;
+            _hrMin.LinePattern = ScottPlot.LinePattern.Dotted;
 
-            hrAverage = ScatterPlot.Plot.Add.HorizontalLine(dataY.Where(x => !Double.IsNaN(x)).Average());
-            hrAverage.Color = ScottPlot.Colors.DarkOrange;
-            hrAverage.LineWidth = 1;
-            hrAverage.LinePattern = ScottPlot.LinePattern.Dotted;
+            _hrAverage = ScatterPlot.Plot.Add.HorizontalLine(_dataY.Where(x => !double.IsNaN(x)).Average());
+            _hrAverage.Color = ScottPlot.Colors.DarkOrange;
+            _hrAverage.LineWidth = 1;
+            _hrAverage.LinePattern = ScottPlot.LinePattern.Dotted;
 
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (timer.IsEnabled)
+            if (_timer.IsEnabled)
             {
-                timer.Stop();
+                _timer.Stop();
             }
             else
             {
-                timer.Start();
+                _timer.Start();
             }
         }
 
-        private void CBFrameWidth_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void CBFrameWidth_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var selectedItem = (TextBlock)CBFrameWidth.SelectedItem;
-            string? value = selectedItem.Text.ToString();
+            string? value = selectedItem.Text;
 
-            if (!string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value)) return;
+            var newValue = Convert.ToInt32(value);
+            if (newValue > _chartTimeWindow)
             {
-                var newValue = Convert.ToInt32(value);
-                if (newValue > chartTimeWindow)
-                {
-                    AddMissingTimeoutLines(index - newValue);
-                }
-
-                chartTimeWindow = newValue;
+                AddMissingTimeoutLines(_index - newValue);
             }
+
+            _chartTimeWindow = newValue;
         }
 
         private void AddMissingTimeoutLines(int minIndex)
         {
-            if (dataY.Count == 0)
+            if (_dataY.Count == 0)
                 return;
 
-            for (int i = Math.Max(0, minIndex); i < index; i++)
+            for (int i = Math.Max(0, minIndex); i < _index; i++)
             {
-                if (double.IsNaN(dataY[i]) && !vrTimeouts.Any(vr => vr.Position == i + 1))
+                if (double.IsNaN(_dataY[i]) && !_vrTimeouts.Any(vr => vr.Position == i + 1))
                 {
                     AddTimeoutLine(i + 1);
                 }
@@ -269,7 +266,7 @@ namespace PingMonitorWPF
             vrTimeout.LineWidth = 3;
             vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
 
-            vrTimeouts.Add(vrTimeout);
+            _vrTimeouts.Add(vrTimeout);
         }
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -277,11 +274,11 @@ namespace PingMonitorWPF
             Properties.Settings.Default.TimeframeWidhtIndex = CBFrameWidth.SelectedIndex;
             Properties.Settings.Default.DelayTime = CBDelayTime.SelectedIndex;
 
-            Properties.Settings.Default.WinTop = this.Top;
-            Properties.Settings.Default.WinLeft = this.Left;
-            Properties.Settings.Default.WinWidth = this.Width;
-            Properties.Settings.Default.WinHeight = this.Height;
-            Properties.Settings.Default.WinState = this.WindowState.ToString();
+            Properties.Settings.Default.WinTop = Top;
+            Properties.Settings.Default.WinLeft = Left;
+            Properties.Settings.Default.WinWidth = Width;
+            Properties.Settings.Default.WinHeight = Height;
+            Properties.Settings.Default.WinState = WindowState.ToString();
             Properties.Settings.Default.Save();
         }
 
@@ -290,44 +287,40 @@ namespace PingMonitorWPF
             CBFrameWidth.SelectedIndex = Properties.Settings.Default.TimeframeWidhtIndex;
             CBDelayTime.SelectedIndex = Properties.Settings.Default.DelayTime;
 
-            if (Properties.Settings.Default.WinWidth != 0)
-            {
-                this.Top = Properties.Settings.Default.WinTop;
-                this.Left = Properties.Settings.Default.WinLeft;
-                this.Width = Properties.Settings.Default.WinWidth;
-                this.Height = Properties.Settings.Default.WinHeight;
+            if (Properties.Settings.Default.WinWidth == 0) return;
+            Top = Properties.Settings.Default.WinTop;
+            Left = Properties.Settings.Default.WinLeft;
+            Width = Properties.Settings.Default.WinWidth;
+            Height = Properties.Settings.Default.WinHeight;
 
-                if (Enum.TryParse(Properties.Settings.Default.WinState, out WindowState state))
-                {
-                    this.WindowState = state;
-                }
+            if (Enum.TryParse(Properties.Settings.Default.WinState, out WindowState state))
+            {
+                WindowState = state;
             }
         }
 
         private void ButtonAct_Click(object sender, RoutedEventArgs e)
         {
-            dataY.Add(double.NaN);
-            dataX.Add(index++);
+            _dataY.Add(double.NaN);
+            _dataX.Add(_index++);
 
-            var vrTimeout = ScatterPlot.Plot.Add.VerticalLine(index);
+            var vrTimeout = ScatterPlot.Plot.Add.VerticalLine(_index);
             vrTimeout.Color = ScottPlot.Colors.Red;
             vrTimeout.LineWidth = 3;
             vrTimeout.LinePattern = ScottPlot.LinePattern.Dashed;
 
-            vrTimeouts.Add(vrTimeout);
+            _vrTimeouts.Add(vrTimeout);
         }
 
         private void CBDelayTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var selectedItem = (TextBlock)CBDelayTime.SelectedItem;
-            string? value = selectedItem.Text.ToString();
+            string? value = selectedItem.Text;
 
-            if (!string.IsNullOrEmpty(value))
-            {
-                _delayTime = Convert.ToInt32(value);
+            if (string.IsNullOrEmpty(value)) return;
+            _delayTime = Convert.ToInt32(value);
 
-                timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
-            }
+            _timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
         }
     }
 }
