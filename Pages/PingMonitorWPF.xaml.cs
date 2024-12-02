@@ -17,9 +17,9 @@ namespace PingMonitorWPF
         const int maxTimeframeWidth = 600;
         int chartTimeWindow = 10;
         int index = 0;
-        readonly List<long> dataX = [];
+        readonly List<DateTime> dataX = [];
         readonly List<double> dataY = [];
-        readonly long[] valuesX = new long[maxTimeframeWidth];
+        readonly DateTime[] valuesX = new DateTime[maxTimeframeWidth];
         readonly double[] valuesY = new double[maxTimeframeWidth];
         Scatter scatter = null!;
         HorizontalLine hrMax = null!;
@@ -64,6 +64,7 @@ namespace PingMonitorWPF
                 LabelFormatter = (double y) => $"{Math.Pow(10, y):N0}"
             };
             ScatterPlot.Plot.Axes.Left.TickGenerator = tickGen;
+            ScatterPlot.Plot.Axes.DateTimeTicksBottom();
             ScatterPlot.Plot.Grid.MajorLineColor = ScottPlot.Colors.Black.WithOpacity(0.15);
             ScatterPlot.Plot.Grid.MinorLineColor = ScottPlot.Colors.Black.WithOpacity(0.05);
             ScatterPlot.Plot.Grid.MinorLineWidth = 1;
@@ -126,19 +127,20 @@ namespace PingMonitorWPF
             AddTimeoutLine(reply);
 
             dataY.Add(reply.RoundtripTime == 0 ? double.NaN : Math.Log10(reply.RoundtripTime));
-            dataX.Add(index);
+            dataX.Add(DateTime.Now);
+            //dataX.Add(index);
             dataX.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesX, 0);
             dataY.TakeLast(chartTimeWindow).ToArray().CopyTo(valuesY, 0);
 
-            markers.Add(ScatterPlot.Plot.Add.Marker(
-                index, dataY.Last(),
-                color: GetColorByRoundtripTime(reply.RoundtripTime),
-                shape: ScottPlot.MarkerShape.FilledCircle,
-                size: 5
-                ));
+            //markers.Add(ScatterPlot.Plot.Add.Marker(
+            //    index, dataY.Last(),
+            //    color: GetColorByRoundtripTime(reply.RoundtripTime),
+            //    shape: ScottPlot.MarkerShape.FilledCircle,
+            //    size: 5
+            //    ));
 
             scatter.MinRenderIndex = 0;
-            scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 1);
+            scatter.MaxRenderIndex = Math.Min(index, chartTimeWindow - 2);
             ScatterPlot.Plot.Axes.AutoScale();
 
             ScatterPlot.Refresh();
@@ -307,7 +309,8 @@ namespace PingMonitorWPF
         private void ButtonAct_Click(object sender, RoutedEventArgs e)
         {
             dataY.Add(double.NaN);
-            dataX.Add(index++);
+            dataX.Add(DateTime.Now);
+            //dataX.Add(index++);
 
             var vrTimeout = ScatterPlot.Plot.Add.VerticalLine(index);
             vrTimeout.Color = ScottPlot.Colors.Red;
