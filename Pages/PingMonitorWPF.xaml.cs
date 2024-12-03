@@ -15,7 +15,7 @@ namespace PingMonitorWPF.Pages
         private const string Address = "8.8.8.8";
         private const int MaxTimeframeWidth = 600;
         private int _chartTimeWindow = 10;
-        private int _index = 0;
+        private int _index;
         private readonly List<long> _dataX = [];
         private readonly List<double> _dataY = [];
         private readonly long[] _valuesX = new long[MaxTimeframeWidth];
@@ -74,7 +74,7 @@ namespace PingMonitorWPF.Pages
 
             try
             {
-                reply = _ping.Send(Address);
+                reply = Task.Run(GetPingReply).Result;
             }
             catch (Exception ex)
             {
@@ -83,12 +83,17 @@ namespace PingMonitorWPF.Pages
                 return;
             }
 
-            SolidColorBrush color = GetBrushByRoundtripTime(reply.RoundtripTime);
+            var color = GetBrushByRoundtripTime(reply.RoundtripTime);
             LabelInfo.Foreground = color;
             ProcessScatterPlot(reply);
 
             LabelInfo.Content = $"[{DateTime.Now.ToLongTimeString()}] {reply.RoundtripTime,5}";
 
+        }
+
+        private Task<PingReply> GetPingReply()
+        {
+            return _ping.SendPingAsync(Address);
         }
 
         private static SolidColorBrush GetBrushByRoundtripTime(long roundtripTime)
@@ -167,7 +172,8 @@ namespace PingMonitorWPF.Pages
                 .ForEach(ScatterPlot.Plot.Remove);
             _vrTimeouts = _vrTimeouts.AsEnumerable().Where(vl => vl.Position >= index - _chartTimeWindow).ToList();
 
-            _markers.AsEnumerable().Where(m => m.Position.X < index - _chartTimeWindow).ToList().ForEach(ScatterPlot.Plot.Remove);
+            _markers.AsEnumerable().Where(m => m.Position.X < index - _chartTimeWindow)
+                .ToList().ForEach(ScatterPlot.Plot.Remove);
         }
 
         private void AddTimeoutLine(PingReply reply)
@@ -182,12 +188,11 @@ namespace PingMonitorWPF.Pages
         {
             ScatterPlot.Plot.Remove(_hrMedian);
 
-            var sorted = _dataY.Where(x => !Double.IsNaN(x)).OrderBy(x => x).ToList();
+            var sorted = _dataY.Where(x => !double.IsNaN(x)).OrderBy(x => x).ToList();
             int count = sorted.Count;
             int mid = count / 2;
-            double median;
 
-            median = (count % 2 == 0) ? median = (sorted[mid - 1] + sorted[mid]) / 2.0 : median = sorted[mid];
+            var median = (count % 2 == 0) ? (sorted[mid - 1] + sorted[mid]) / 2.0 : sorted[mid];
 
             _hrMedian = ScatterPlot.Plot.Add.HorizontalLine(median);
             _hrMedian.Color = ScottPlot.Colors.Blue;
