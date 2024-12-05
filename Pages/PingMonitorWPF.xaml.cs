@@ -28,12 +28,14 @@ namespace PingMonitorWPF.Pages
         private List<VerticalLine> _vrTimeouts = [];
         private long _medianFactor = 10;
         private readonly List<Marker> _markers = [];
+        private Task<PingReply> _pingTask;
 
         public MainWindow()
         {
             InitializeComponent();
 
             InitScatterPlot();
+            _pingTask = _ping.SendPingAsync(Address);
 
             _timer.Interval = TimeSpan.FromMilliseconds(_delayTime);
             _timer.Tick += Timer_Tick;
@@ -70,30 +72,35 @@ namespace PingMonitorWPF.Pages
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            PingReply reply;
+            TickProcessor();
+        }
 
-            try
-            {
-                reply = Task.Run(GetPingReply).Result;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Got exception: " + ex.Message);
-                Thread.Sleep(1000);
-                return;
-            }
-
+        private void ProcessPingReply(PingReply reply)
+        {
             var color = GetBrushByRoundtripTime(reply.RoundtripTime);
             LabelInfo.Foreground = color;
             ProcessScatterPlot(reply);
 
             LabelInfo.Content = $"[{DateTime.Now.ToLongTimeString()}] {reply.RoundtripTime,5}";
-
         }
 
-        private Task<PingReply> GetPingReply()
+        private void TickProcessor()
         {
-            return _ping.SendPingAsync(Address);
+            if (!_pingTask.IsCompletedSuccessfully)
+            {
+                if (_pingTask.Status == TaskStatus.Faulted)
+                {
+                    Thread.Sleep(1000);
+                    _pingTask = _ping.SendPingAsync(Address);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            ProcessPingReply(_pingTask.Result);
+            _pingTask = _ping.SendPingAsync(Address);
         }
 
         private static SolidColorBrush GetBrushByRoundtripTime(long roundtripTime)
@@ -240,7 +247,8 @@ namespace PingMonitorWPF.Pages
             var selectedItem = (TextBlock)CBFrameWidth.SelectedItem;
             string? value = selectedItem.Text;
 
-            if (string.IsNullOrEmpty(value)) return;
+            if (string.IsNullOrEmpty(value))
+                return;
             var newValue = Convert.ToInt32(value);
             if (newValue > _chartTimeWindow)
             {
@@ -292,7 +300,8 @@ namespace PingMonitorWPF.Pages
             CBFrameWidth.SelectedIndex = Properties.Settings.Default.TimeframeWidhtIndex;
             CBDelayTime.SelectedIndex = Properties.Settings.Default.DelayTime;
 
-            if (Properties.Settings.Default.WinWidth == 0) return;
+            if (Properties.Settings.Default.WinWidth == 0)
+                return;
             Top = Properties.Settings.Default.WinTop;
             Left = Properties.Settings.Default.WinLeft;
             Width = Properties.Settings.Default.WinWidth;
@@ -322,7 +331,8 @@ namespace PingMonitorWPF.Pages
             var selectedItem = (TextBlock)CBDelayTime.SelectedItem;
             string? value = selectedItem.Text;
 
-            if (string.IsNullOrEmpty(value)) return;
+            if (string.IsNullOrEmpty(value))
+                return;
             _delayTime = Convert.ToInt32(value);
 
             _timer.Interval = TimeSpan.FromMilliseconds(_delayTime);

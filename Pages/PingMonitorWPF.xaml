@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PingMonitorWPF"
         mc:Ignorable="d"
-        Title="PingMonitorWpf v0.7" Height="450" Width="800">
+        Title="PingMonitorWpf v0.7as" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
