@@ -86,21 +86,29 @@ namespace PingMonitorWPF.Pages
 
         private void TickProcessor()
         {
-            if (!_pingTask.IsCompletedSuccessfully)
+            try
             {
-                if (_pingTask.Status == TaskStatus.Faulted)
+                if (!_pingTask.IsCompletedSuccessfully)
                 {
-                    Thread.Sleep(1000);
-                    _pingTask = _ping.SendPingAsync(Address);
+                    if (_pingTask.Status == TaskStatus.Faulted)
+                    {
+                        Thread.Sleep(1000);
+                        _pingTask = _ping.SendPingAsync(Address);
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
-                else
-                {
-                    return;
-                }
-            }
 
-            ProcessPingReply(_pingTask.Result);
-            _pingTask = _ping.SendPingAsync(Address);
+                ProcessPingReply(_pingTask.Result);
+                _pingTask = _ping.SendPingAsync(Address);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Thread.Sleep(1000);
+            }
         }
 
         private static SolidColorBrush GetBrushByRoundtripTime(long roundtripTime)
